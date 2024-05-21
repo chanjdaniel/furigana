@@ -2,10 +2,8 @@
 let isExtensionActive = false;
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    if (request.command === "toggle") {
-        isExtensionActive = !isExtensionActive;  // Toggle the state
+    if (request.command === "press") {
 
-        if (isExtensionActive) {
             // Inject the content script
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
                 chrome.scripting.executeScript({
@@ -13,13 +11,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                     files: ['scripts/content.js']
                 });
             });
-        } else {
-            // Remove the content script by reloading the tab
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                chrome.tabs.reload(tabs[0].id);
-            });
-        }
 
-        sendResponse({status: "success", state: isExtensionActive});
+        sendResponse({status: "success"});
     }
 });
