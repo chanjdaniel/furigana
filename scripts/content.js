@@ -1,13 +1,10 @@
-var textNodes = textNodesUnder(document.getRootNode());
 console.log("activated");
-for (let i = 0; i < textNodes.length; i++) {
-    // console.log(text[i]);
-    // const replacement = document.createElement(text[i].tagName);
-    // const node = document.createTextNode("poopy");
-    // replacement.appendChild(node);
+let furiganaDictPath = './furiganaDict.json';
+import furiganaDict from furiganaDictPath assert {type: 'json'};
 
-    // const parent = text[i].parentElement;
-    // parent.replaceChild(replacement, text[i]);
+var textNodes = textNodesUnder(document.getRootNode());
+
+for (let i = 0; i < textNodes.length; i++) {
     const textNodeValue = textNodes[i].nodeValue;
     if (containsKanji(textNodeValue)) {
 
@@ -34,9 +31,11 @@ for (let i = 0; i < textNodes.length; i++) {
                     divContainer.style.display = "flex";
                     divContainer.style.flexDirection = "column";
                     divContainer.style.justifyContent = "center";
+
+                    let context = j < splitTextArray.length ? splitTextArray[j + 1] : "";
+                    let furiganaText = getFurigana(currentText, context, furiganaDict);
         
                     const furigana = document.createElement("span");
-                    let furiganaText = getFurigana(currentText);
                     const furiganaTextNode = document.createTextNode(furiganaText);
                     furigana.style.display = "flex";
                     furigana.style.justifyContent = "center";
@@ -74,8 +73,8 @@ for (let i = 0; i < textNodes.length; i++) {
 
 // input string containing only kanji
 // return array of pairs in the form [[furigana, kanji],[furigana, kanji]]
-function getFurigana(kanji) {
-    return "あ";
+function getFurigana(kanji, context, furiganaDict) {
+    furiganaDict["kanji"]["context"];
 }
 
 // https://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi
