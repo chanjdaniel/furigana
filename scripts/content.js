@@ -1,80 +1,140 @@
 console.log("activated");
-let furiganaDictPath = './furiganaDict.json';
-import furiganaDict from furiganaDictPath assert {type: 'json'};
 
-var textNodes = textNodesUnder(document.getRootNode());
+fetchJsonData((furiganaDict) => {
+    console.log('Loaded JSON data:', furiganaDict);
+    var textNodes = textNodesUnder(document.getRootNode());
 
-for (let i = 0; i < textNodes.length; i++) {
-    const textNodeValue = textNodes[i].nodeValue;
-    if (containsKanji(textNodeValue)) {
+    for (let i = 0; i < textNodes.length; i++) {
+        const textNodeValue = textNodes[i].nodeValue;
+        if (containsKanji(textNodeValue)) {
 
-        const splitTextArray = splitText(textNodeValue);
-        const replacement = document.createElement("div");
-        replacement.style.display = "flex";
-        replacement.style.flexDirection = "column";
+            const splitTextArray = splitText(textNodeValue);
+            const replacement = document.createElement("div");
+            replacement.style.display = "flex";
+            replacement.style.flexDirection = "column";
 
-        let j = 0;
-        while (j < splitTextArray.length) {
-            const textLine = document.createElement("span");
-            textLine.style.display = "flex";
-            textLine.style.flexDirection = "row";
-            textLine.style.alignItems = "flex-end";
+            let j = 0;
             while (j < splitTextArray.length) {
-                const currentText = splitTextArray[j];
-                if (currentText == '\n') {
+                const textLine = document.createElement("span");
+                textLine.style.display = "flex";
+                textLine.style.flexDirection = "row";
+                textLine.style.alignItems = "flex-end";
+                while (j < splitTextArray.length) {
+                    const currentText = splitTextArray[j];
+                    if (currentText == '\n') {
+                        j++;
+                        break;
+                    }
+
+                    if (containsKanji(currentText)) {
+                        const divContainer = document.createElement("div");
+                        divContainer.style.display = "flex";
+                        divContainer.style.flexDirection = "column";
+                        divContainer.style.justifyContent = "center";
+
+                        let precontext = j - 1 >= 0 ? splitTextArray[j - 1] : "";
+                        let postcontext = j + 1 < splitTextArray.length ? splitTextArray[j + 1] : "";
+                        let furiganaText = getFurigana(currentText, precontext, postcontext, furiganaDict);
+            
+                        const furigana = document.createElement("span");
+                        const furiganaTextNode = document.createTextNode(furiganaText);
+                        furigana.style.display = "flex";
+                        furigana.style.justifyContent = "center";
+                        furigana.style.whiteSpace = "nowrap";
+                        furigana.appendChild(furiganaTextNode);
+                        divContainer.appendChild(furigana);
+
+                        const original = document.createElement(textNodes[i].parentNode.tagName);
+                        const originalTextNode = document.createTextNode(currentText);
+                        original.style.display = "flex";
+                        original.style.justifyContent = "center";
+                        original.style.whiteSpace = "nowrap";
+                        original.appendChild(originalTextNode);
+                        divContainer.appendChild(original);
+
+                        textLine.appendChild(divContainer);
+
+                    } else {
+                        const original = document.createElement(textNodes[i].parentNode.tagName);
+                        const originalTextNode = document.createTextNode(currentText);
+                        original.style.whiteSpace = "nowrap";
+                        original.appendChild(originalTextNode);
+                        textLine.appendChild(original);
+                    }
+
                     j++;
-                    break;
                 }
-
-                if (containsKanji(currentText)) {
-                    const divContainer = document.createElement("div");
-                    divContainer.style.display = "flex";
-                    divContainer.style.flexDirection = "column";
-                    divContainer.style.justifyContent = "center";
-
-                    let context = j < splitTextArray.length ? splitTextArray[j + 1] : "";
-                    let furiganaText = getFurigana(currentText, context, furiganaDict);
-        
-                    const furigana = document.createElement("span");
-                    const furiganaTextNode = document.createTextNode(furiganaText);
-                    furigana.style.display = "flex";
-                    furigana.style.justifyContent = "center";
-                    furigana.appendChild(furiganaTextNode);
-                    divContainer.appendChild(furigana);
-
-                    const original = document.createElement(textNodes[i].parentNode.tagName);
-                    const originalTextNode = document.createTextNode(currentText);
-                    original.style.whiteSpace = "nowrap";
-                    original.appendChild(originalTextNode);
-                    divContainer.appendChild(original);
-
-                    textLine.appendChild(divContainer);
-
-                } else {
-                    const original = document.createElement(textNodes[i].parentNode.tagName);
-                    const originalTextNode = document.createTextNode(currentText);
-                    original.style.whiteSpace = "nowrap";
-                    original.appendChild(originalTextNode);
-                    textLine.appendChild(original);
-                }
-
-                j++;
+                replacement.appendChild(textLine);
             }
-            replacement.appendChild(textLine);
-        }
 
-        var parent = textNodes[i].parentElement;
-        parent.replaceChild(replacement, textNodes[i]);
-        parent.style.display = "flex";
-        parent.style.flexDirection = "row";
-        parent.style.alignItems = "flex-end";
+            var parent = textNodes[i].parentElement;
+            parent.replaceChild(replacement, textNodes[i]);
+            parent.style.display = "flex";
+            parent.style.flexDirection = "row";
+            parent.style.alignItems = "flex-end";
+        };
     };
-};
+});
+
+function fetchJsonData(callback) {
+    chrome.runtime.sendMessage({ action: 'getJsonData' }, (response) => {
+      if (response && response.jsonData) {
+        callback(response.jsonData);
+      } else {
+        console.error('Failed to retrieve JSON data');
+      }
+    });
+  }
 
 // input string containing only kanji
 // return array of pairs in the form [[furigana, kanji],[furigana, kanji]]
-function getFurigana(kanji, context, furiganaDict) {
-    furiganaDict["kanji"]["context"];
+function getFurigana(kanji, precontext, postcontext, furiganaDict) {
+    // return if kanji not found in dictionary
+    if (!furiganaDict.hasOwnProperty(kanji)) {
+        return "K";
+    }
+
+    console.log("postcontext");
+    console.log(postcontext);
+
+    // look for match in postcontext
+    for (let i = postcontext.length; i > 0; i--) {
+        let temp = postcontext.substring(0,i);
+        console.log("temp");
+        console.log(temp);
+        if (!containsHiragana(temp) && temp.length > 0) {
+            console.log("break1");
+            console.log(temp);
+            break;
+        }
+        if (furiganaDict[kanji]["post"].hasOwnProperty(temp)) {
+            console.log("return");
+            console.log(temp);
+            return furiganaDict[kanji]["post"][temp];
+        }
+    }
+
+    // if none found, look for match in precontext
+    for (let i = 0; i < precontext.length; i++) {
+        let temp = precontext.substring(i,precontext.length);
+        if (!containsHiragana(temp) && temp.length > 0) {
+            break;
+        }
+        if (furiganaDict[kanji]["pre"].hasOwnProperty(temp)) {
+            console.log("pre")
+            console.log(temp);
+            return furiganaDict[kanji]["pre"][temp];
+        }
+    }
+
+    // if none found, look for match for empty string
+    if (furiganaDict[kanji]["post"].hasOwnProperty("")) {
+        return furiganaDict[kanji]["post"][""];
+
+     // if none found, return
+    } else {
+        return "C";
+    }
 }
 
 // https://stackoverflow.com/questions/15033196/using-javascript-to-check-whether-a-string-contains-japanese-characters-includi

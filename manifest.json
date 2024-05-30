@@ -3,7 +3,7 @@
     "name": "furigana",
     "description": "Adds furigana to website",
     "version": "1.0",
-    "permissions": ["activeTab", "scripting", "tabs"],
+    "permissions": ["activeTab", "scripting", "tabs", "storage", "unlimitedStorage"],
     "action": {
       "default_popup": "scripts/popup.html",
       "default_icon": "images/icon-48.png"
@@ -19,7 +19,7 @@
     },
     "web_accessible_resources": [
         {
-            "resources": [ "./scripts/furiganaDict.json" ],
+            "resources": [ "./data/furiganaDict.json" ],
             "matches": ["<all_urls>"],
             "extension_ids": []
         }
